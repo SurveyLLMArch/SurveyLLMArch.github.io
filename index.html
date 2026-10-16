@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Towards Next-Generation Architectures of Large Language Models</title>
+  <meta name="description" content="A survey of what the canonical decoder fixes, and what recent open-weight LLM architectures change.">
+  <link rel="canonical" href="https://surveyllmarch.github.io/">
+  <meta name="robots" content="index,follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,560&family=IBM+Plex+Mono:wght@400&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">LLM Architecture Survey</a>
+      <nav class="nav" aria-label="Page">
+        <a href="#abstract">Abstract</a>
+        <a href="#overview">Overview</a>
+        <a href="#map">Map</a>
+        <a href="#design">Design space</a>
+        <a href="#patterns">Patterns</a>
+        <a href="#cite">Cite</a>
+      </nav>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <p class="kicker">A survey · 2026</p>
+      <h1>Towards Next-Generation Architectures of Large Language Models</h1>
+      <p class="lede">What the canonical decoder fixes, and what recent architectures change. A reading of open-weight language models as a design space, not a catalogue of modules.</p>
+      <p class="authors">
+        <span>Yao Teng<sup>1,*</sup></span>
+        <span>Guoxuan Chen<sup>1,*</sup></span>
+        <span>Yimeng Chen<sup>2,†</sup></span>
+        <span>Han Shi<sup>3,†</sup></span>
+        <span>Piotr Piękos<sup>2</sup></span>
+        <span>Jie Ran<sup>3</sup></span>
+        <span>Yutao Zeng<sup>4</sup></span>
+        <span>Chuanyang Zheng<sup>3</sup></span>
+        <span>Jingyao Li<sup>5</sup></span>
+        <span>Li Nanbo<sup>2</sup></span>
+        <span>Haoli Bai<sup>3</sup></span>
+        <span>Chao Huang<sup>1</sup></span>
+        <span>Xihui Liu<sup>1</sup></span>
+        <span>Di He<sup>6</sup></span>
+        <span>Weiyang Liu<sup>5,7</sup></span>
+        <span>Jürgen Schmidhuber<sup>2,8</sup></span>
+      </p>
+      <p class="affils">
+        <sup>1</sup>The University of Hong Kong ·
+        <sup>2</sup>Center of Excellence for Generative AI, KAUST ·
+        <sup>3</sup>Huawei Technologies ·
+        <sup>4</sup>ByteDance Seed ·
+        <sup>5</sup>The Chinese University of Hong Kong ·
+        <sup>6</sup>Peking University ·
+        <sup>7</sup>Max Planck Institute for Intelligent Systems ·
+        <sup>8</sup>The Swiss AI Lab, IDSIA-USI/SUPSI
+      </p>
+      <p class="notes">* Equal contribution. &nbsp; † Corresponding authors.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://www.preprints.org/manuscript/202610.1532">Paper</a>
+        <a class="btn ghost" href="Towards_Next_Generation_Architectures_of_Large_Language_Models_A_Survey.pdf">PDF</a>
+        <a class="btn ghost" href="https://github.com/SurveyLLMArch/LLMArchitectureSurvey">GitHub</a>
+        <a class="btn ghost" href="https://huggingface.co/SurveyLLMArch/LLMArchitectureSurvey">Hugging Face</a>
+        <a class="btn ghost" href="#cite">Cite</a>
+      </div>
+    </section>
+
+    <section id="abstract">
+      <div class="wrap">
+        <p class="section-label">Abstract</p>
+        <h2>The decoder, read as a set of assumptions</h2>
+        <div class="abstract">
+          <p>Large language models have advanced rapidly through increases in model scale, data, and computation, while their underlying architectures have also undergone substantial evolution. Beyond the canonical Transformer, recent designs seek greater efficiency, scalability, and flexibility by rethinking how sequence information is processed, represented, and transformed.</p>
+          <p>We survey efficient attention and state management, modern recurrent and other linear-complexity sequence models, Mixture-of-Experts architectures, and advances in activation functions, normalization, residual connections, positional encoding, and tokenization. We also cover multi-token prediction and adaptive and recurrent depth. Across these areas we highlight trade-offs among representational power, optimization stability, and computational cost.</p>
+          <p>Complementing this component-wise treatment, we take a system-level view. We trace representative open-weight families to identify recurring patterns in how choices are combined, and synthesize those developments along four directions—processing structure, transformation dynamics, state management, and output commitment—asking which assumptions of the canonical decoder each design preserves, refines, or relaxes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="overview">
+      <div class="wrap">
+        <p class="section-label">Section 15</p>
+        <h2>Four directions of change</h2>
+        <figure class="figure">
+          <img src="assets/design_overview.png" alt="From the canonical decoder to four directions of architectural change">
+          <figcaption>Opening view of the survey. The canonical decoder fixes a pre-norm residual block, a dense feed-forward network, the same depth for every token, and a token-level key–value cache that grows with generation. The four panels are developed in Section 15.</figcaption>
+        </figure>
+        <div class="grid-4" style="margin-top: 1rem;">
+          <article class="card">
+            <div class="swatch" style="--chip:#fecaca"></div>
+            <h3>Processing</h3>
+            <p>Flexible and conditional: who runs, and how much work a token receives.</p>
+          </article>
+          <article class="card">
+            <div class="swatch" style="--chip:#93c5fd"></div>
+            <h3>State</h3>
+            <p>Selective and flexible: what history is kept, and how that state is updated.</p>
+          </article>
+          <article class="card">
+            <div class="swatch" style="--chip:#fde68a"></div>
+            <h3>Lookahead</h3>
+            <p>Delayed commitment: predict further ahead, then decide what to keep.</p>
+          </article>
+          <article class="card">
+            <div class="swatch" style="--chip:#c4b5fd"></div>
+            <h3>Dynamics</h3>
+            <p>Refined transforms: the nonlinearity and the path across depth.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="snapshot">
+      <div class="wrap">
+        <p class="section-label">Section 1</p>
+        <h2>Where open-weight models stand</h2>
+        <p style="color:var(--muted); max-width:42rem; margin-top:0;">MMLU against release date covers roughly 2021–2025. By 2026 that benchmark was nearing saturation, so the survey turns to Humanity’s Last Exam for the recent open-weight generation.</p>
+        <div class="grid-2">
+          <figure class="figure">
+            <img src="assets/hle.png" alt="Open-weight model scale versus Humanity's Last Exam">
+            <figcaption>HLE versus open-weight model size. Marker area grows with active parameters for mixture-of-experts models. Dashed and dotted curves are observed Pareto frontiers with and without tools. Scores that mix protocols should be compared with caution.</figcaption>
+          </figure>
+          <figure class="figure">
+            <img src="assets/mmlu.png" alt="MMLU versus release date">
+            <figcaption>Earlier generations on MMLU. Scale still matters at a given moment; newer and smaller models often pass older and much larger ones; sparse capacity reaches the top of the range at lower active cost.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="map">
+      <div class="wrap">
+        <p class="section-label">Section 2</p>
+        <h2>Survey map</h2>
+        <p style="color:var(--muted); max-width:42rem; margin-top:0;">Sections 1 and 2 frame the tree; they are not a third technical family. Color follows the role of each block in the stack. Scroll the figure to read the full taxonomy.</p>
+        <figure class="figure scroll">
+          <img src="assets/survey_map.png" alt="Survey taxonomy: eight architectural families from foundations through system-level synthesis">
+        </figure>
+        <div class="grid-chapters" style="margin-top: 1rem;">
+          <article class="card fnd"><div class="swatch"></div><h3>3–4 · Foundations</h3><p>From Shannon’s source to the decoder-only Transformer: attention, feed-forward, position, residual, tokenization, and next-token generation.</p></article>
+          <article class="card att"><div class="swatch"></div><h3>5 · Efficient attention</h3><p>Keep quadratic attention; shrink the KV state along token, head, dimension, and layer.</p></article>
+          <article class="card lin"><div class="swatch"></div><h3>6 · Linear language models</h3><p>Replace pairwise mixing with a linear-time operator: RNNs, fast weights, state space, linearized attention.</p></article>
+          <article class="card moe"><div class="swatch"></div><h3>7 · Mixture of experts</h3><p>Conditional parameter activation: sparse gating, fine-grained shared experts, systems-oriented variants.</p></article>
+          <article class="card blk"><div class="swatch"></div><h3>8–9 · Inside the block</h3><p>Activation functions, then normalization and residual wiring—the path representations take across depth.</p></article>
+          <article class="card ifc"><div class="swatch"></div><h3>10–11 · Sequence interface</h3><p>Positional encoding and tokenization: the units and coordinates of the sequence.</p></article>
+          <article class="card cmp"><div class="swatch"></div><h3>12–13 · Compute per token</h3><p>Multi-token prediction and adaptive or recurrent depth: how much work a generated token receives.</p></article>
+          <article class="card syn"><div class="swatch"></div><h3>14–16 · Synthesis</h3><p>Released families, a unified design space, and three conclusions about what is still the reference decoder.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="design">
+      <div class="wrap">
+        <p class="section-label">Section 15.2</p>
+        <h2>Ten design dimensions</h2>
+        <p style="color:var(--muted); max-width:46rem; margin-top:0;">The canonical structure is simple: a fixed tokenization, the same dense blocks, an append-only token-level cache, and one committed next token. The table is the survey’s decomposition of what can change.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Direction</th>
+                <th>Dimension</th>
+                <th>Canonical assumption</th>
+                <th>Alternative</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="4">Flexible and conditional processing</td>
+                <td>Sequence interface</td>
+                <td>One fixed tokenization and positional scheme</td>
+                <td>Finer, multi-scale, or adaptive units</td>
+              </tr>
+              <tr>
+                <td>Operator assignment</td>
+                <td>The same sequence mixer in every layer</td>
+                <td>Different operators across layers or heads</td>
+              </tr>
+              <tr>
+                <td>Parameter activation</td>
+                <td>Every token runs the same dense blocks</td>
+                <td>Input-dependent routing among experts</td>
+              </tr>
+              <tr>
+                <td>Computation allocation</td>
+                <td>A fixed path and a predetermined amount of work</td>
+                <td>Early exit, conditional or recurrent depth, drafter–verifier</td>
+              </tr>
+              <tr>
+                <td rowspan="2">Refined transformation dynamics</td>
+                <td>Local nonlinearity</td>
+                <td>A fixed feed-forward nonlinearity, often SwiGLU</td>
+                <td>Other gates: squared ReLU, clamped SwiGLU</td>
+              </tr>
+              <tr>
+                <td>Depth propagation</td>
+                <td>Fixed residual and normalization pathways</td>
+                <td>Other placement, residual scaling, or gating</td>
+              </tr>
+              <tr>
+                <td rowspan="2">Selective and flexible state</td>
+                <td>History representation</td>
+                <td>Individually addressable token states</td>
+                <td>Selective, compressed, recurrent, or hybrid history</td>
+              </tr>
+              <tr>
+                <td>State update</td>
+                <td>Append-only growth</td>
+                <td>Eviction, merging, compression, branching, or rollback</td>
+              </tr>
+              <tr>
+                <td rowspan="2">Lookahead and delayed commitment</td>
+                <td>Prediction horizon</td>
+                <td>Next-token supervision only</td>
+                <td>Multi-step, blockwise, or feature-level prediction</td>
+              </tr>
+              <tr>
+                <td>Output commitment</td>
+                <td>One committed token per forward pass</td>
+                <td>Drafting, parallel verification, delayed commitment</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="patterns">
+      <div class="wrap">
+        <p class="section-label">Section 14.2</p>
+        <h2>Patterns in released models</h2>
+        <p style="color:var(--muted); max-width:42rem; margin-top:0;">A pattern is a combination. The four are not a partition: one backbone can instantiate more than one.</p>
+        <div class="grid-2">
+          <article class="card">
+            <h3>Canonical dense decoders</h3>
+            <p>Decoder-only stack, dense feed-forward blocks, fixed depth. Pre-RMSNorm, SwiGLU, and rotary positions became the usual fill of that skeleton. LLaMA is the reference instance.</p>
+          </article>
+          <article class="card">
+            <h3>Sparse capacity, compressed attention state</h3>
+            <p>Expert routing and cache compression spend different budgets. DeepSeek-V2 and V3 pair fine-grained shared experts with multi-head latent attention.</p>
+          </article>
+          <article class="card">
+            <h3>Hybrid sequence and state processing</h3>
+            <p>Softmax attention keeps an addressable history; a linear operator compresses it as it is built. Griffin, Jamba, Nemotron, Qwen3-Next, and Kimi Linear interleave the two.</p>
+          </article>
+          <article class="card">
+            <h3>Prediction-augmented backbones</h3>
+            <p>A multi-token objective or module sits on a dense, sparse, or hybrid trunk. DeepSeek-V3, MiMo-7B, LongCat-Flash, and MiMo-V2-Flash are instances.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="cite">
+      <div class="wrap">
+        <p class="section-label">Citation</p>
+        <h2>If the survey is useful, please cite it</h2>
+        <div class="cite-box">
+          <button class="copy" id="copy-bibtex" type="button">Copy</button>
+          <pre id="bibtex">@article{llmarchsurvey2026,
+  doi = {10.20944/preprints202610.1532.v1},
+  url = {https://doi.org/10.20944/preprints202610.1532.v1},
+  year = 2026,
+  month = {October},
+  publisher = {Preprints},
+  author = {Yao Teng and Guoxuan Chen and Yimeng Chen and Han Shi and Piotr Piękos and Jie Ran and Yutao Zeng and Chuanyang Zheng and Jingyao Li and Li Nanbo and Haoli Bai and Chao Huang and Xihui Liu and Di He and Weiyang Liu and Jürgen Schmidhuber},
+  title = {Towards Next-Generation Architectures of Large Language Models: A Survey},
+  journal = {Preprints}
+}</pre>
+        </div>
+        <p style="margin-top:1rem;">
+          <a href="https://www.preprints.org/manuscript/202610.1532">Paper on Preprints.org</a>
+          ·
+          <a href="https://www.preprints.org/manuscript/202610.1532">doi:10.20944/preprints202610.1532.v1</a>
+          ·
+          <a href="https://github.com/SurveyLLMArch/LLMArchitectureSurvey">Literature map on GitHub</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Companion site for <i>Towards Next-Generation Architectures of Large Language Models: A Survey</i>.
+      Built for GitHub Pages.
+    </div>
+  </footer>
+  <script src="js/site.js"></script>
+</body>
+</html>
