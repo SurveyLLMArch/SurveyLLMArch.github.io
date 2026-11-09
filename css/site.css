@@ -211,7 +211,7 @@ h1 {
 .btn.primary {
   background: var(--ink);
   border-color: var(--ink);
-  color: #f8fafc;
+  color: var(--bg);
 }
 
 .btn:hover { opacity: 1; transform: translateY(-1px); }
